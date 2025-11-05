@@ -1,0 +1,41 @@
+package io.github.PzGallium.consumer.core;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import io.netty.channel.ChannelFuture;
+
+public class ChannelManager {
+	static AtomicInteger position = new AtomicInteger(0);
+	public static CopyOnWriteArrayList<ChannelFuture> channelFutures = new CopyOnWriteArrayList<>();
+	static CopyOnWriteArrayList<String> realServerPath = new CopyOnWriteArrayList<>();
+
+	
+	public static void removeFuture(ChannelFuture channel) {
+		channelFutures.remove(channel);
+	}
+	
+	public static void add(ChannelFuture channel) {
+		channelFutures.add(channel);
+	}
+	
+	public static void clear() {
+		channelFutures.clear();
+	}
+
+	public static ChannelFuture get(AtomicInteger i) {
+		int size = channelFutures.size();
+		ChannelFuture channel = null;
+		if (i.get() > size) {
+			channel = channelFutures.get(0);
+			ChannelManager.position = new AtomicInteger(1);
+		} else {
+			channel = channelFutures.get(i.getAndIncrement());
+		}
+		
+		return channel;
+	}
+	
+}
