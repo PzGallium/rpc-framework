@@ -1,4 +1,4 @@
-package io.github.PzGallium.rpc.server;
+ package io.github.PzGallium.rpc.server;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;

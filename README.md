@@ -37,35 +37,88 @@ It supports both **long-lived Netty connections** and **annotation-based configu
 
 ---
 
+## 🧩 Quick Start
 
+### ✅ Server-Side Development
 
+Create your business service:
 
+```java
+@Service
+public class TestService {
+    public void test(User user){
+        System.out.println("调用了TestService.test");
+    }
+}
+```
 
+### ✅ Define the interface and implementation:
 
+```java
+public interface TestRemote {
+    Response testUser(User user);
+}
 
+@Remote
+public class TestRemoteImpl implements TestRemote {
+    @Resource
+    private TestService service;
 
+    public Response testUser(User user){
+        service.test(user);
+        return ResponseUtil.createSuccessResponse(user);
+    }
+}
+```
 
+### ✅ Client-Side Development
 
+Define the client interface:
 
+```java
+public interface TestRemote {
+    Response testUser(User user);
+}
+```
 
----
+Invoke with annotation:
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = RemoteInvokeTest.class)
+@ComponentScan("\\")
+public class RemoteInvokeTest {
+
+    @RemoteInvoke
+    public static TestRemote userRemote;
+
+    @Test
+    public void testSaveUser() {
+        User user = new User(1000, "张三");
+        userRemote.testUser(user);
+    }
+}
+```
 
 ## 🛠️ How to Run
 
-### 1. Start Zookeeper
-Ensure Zookeeper is running (default port `2181`):
-```bash
-bin/zkServer.sh start
+### Start Zookeeper
+Ensure Zookeeper is running (default port 2181):
 
-### 2. Start the Server
+```shell
+bin/zkServer.sh start
+```
+
+### Start the server
+
+```shell
 cd rpc
 mvn clean package
 java -cp target/rpc.jar io.github.PzGallium.rpc.server.SpringServer
-
-### 3. Start the Client
+```
+### Start the Client
+```shell
 cd consumer
 mvn clean package
 java -cp target/consumer.jar io.github.PzGallium.consumer.core.TcpClient
 
-
-
+```
