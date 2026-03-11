@@ -47,14 +47,13 @@ public class RemoteInvokingTest {
 	
 	@Test
 	public void testSaveUsers() {
-		ClientRequest request = new ClientRequest();
 		List<User> users = new ArrayList<>();
 		User u = new User();
 		u.setId(1);
 		u.setName("Samuel");
 		users.add(u);
-		userRemote.saveUsers(users);
-		Response resp = TcpClient.send(request);
+
+		Response resp = userRemote.saveUsers(users);
 		System.out.println(resp.getResult());
 	}
 }
