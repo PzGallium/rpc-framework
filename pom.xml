@@ -86,10 +86,13 @@
   <profiles>
     <profile>
       <id>github-packages</id>
+      <properties>
+        <github.repository.owner>PzGallium</github.repository.owner>
+      </properties>
       <distributionManagement>
         <repository>
           <id>github</id>
-          <url>https://maven.pkg.github.com/${env.GITHUB_REPOSITORY_OWNER:-PzGallium}/my-rpc-framework</url>
+          <url>https://maven.pkg.github.com/${github.repository.owner}/rpc-framework</url>
         </repository>
       </distributionManagement>
     </profile>
