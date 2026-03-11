@@ -12,7 +12,7 @@ import com.alibaba.fastjson.JSONObject;
 import io.github.PzGallium.consumer.constant.Constants;
 import io.github.PzGallium.consumer.handler.SimpleClientHandler;
 import io.github.PzGallium.consumer.param.ClientRequest;
-import io.github.PzGallium.consumer.param.Response;
+import io.github.PzGallium.rpc.netty.util.Response;
 import io.github.PzGallium.rpc.netty.factory.ZookeeperFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;

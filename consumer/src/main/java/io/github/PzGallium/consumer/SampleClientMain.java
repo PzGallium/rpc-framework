@@ -6,9 +6,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import io.github.PzGallium.consumer.annotation.RemoteInvoke;
-import io.github.PzGallium.consumer.param.Response;
-import io.github.PzGallium.consumer.user.bean.User;
-import io.github.PzGallium.consumer.user.remote.UserRemote;
+import io.github.PzGallium.rpc.netty.util.Response;
+import io.github.PzGallium.rpc.user.bean.User;
+import io.github.PzGallium.rpc.user.remote.UserRemote;
 
 /**
  * 示例客户端入口：演示如何在本项目中启动 Spring 上下文并调用 RPC 接口。

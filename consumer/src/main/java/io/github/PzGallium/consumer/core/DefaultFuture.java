@@ -8,7 +8,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.github.PzGallium.consumer.param.ClientRequest;
-import io.github.PzGallium.consumer.param.Response;
+import io.github.PzGallium.rpc.netty.util.Response;
 
 public class DefaultFuture {
 	private Response response;

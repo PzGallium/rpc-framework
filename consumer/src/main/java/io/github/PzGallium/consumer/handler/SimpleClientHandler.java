@@ -3,7 +3,7 @@ package io.github.PzGallium.consumer.handler;
 import com.alibaba.fastjson.JSONObject;
 
 import io.github.PzGallium.consumer.core.DefaultFuture;
-import io.github.PzGallium.consumer.param.Response;
+import io.github.PzGallium.rpc.netty.util.Response;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 

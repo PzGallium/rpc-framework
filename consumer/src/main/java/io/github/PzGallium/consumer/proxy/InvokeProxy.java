@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import io.github.PzGallium.consumer.annotation.RemoteInvoke;
 import io.github.PzGallium.consumer.core.TcpClient;
 import io.github.PzGallium.consumer.param.ClientRequest;
-import io.github.PzGallium.consumer.param.Response;
+import io.github.PzGallium.rpc.netty.util.Response;
 
 @Component
 public class InvokeProxy implements BeanPostProcessor{

@@ -44,8 +44,8 @@ This project implements a fully functional RPC framework similar in architecture
 It supports both **long-lived Netty connections** and **annotation-based configuration**, enabling seamless service invocation between distributed Java applications.
 
 ### Architecture
-- **`rpc/`** – Server-side module (service provider)
-- **`consumer/`** – Client-side module (service consumer)
+- **`rpc/`** – Server-side module (service provider)；**对外契约（接口与公共 DTO）仅在此定义**，consumer 依赖 rpc 引用同一份
+- **`consumer/`** – Client-side module (service consumer)，依赖 rpc 获得接口与 DTO，无需重复定义
 - **Zookeeper** – Acts as the service registry center
 - **Netty 4.x** – Provides asynchronous network communication and connection management
 - **Spring** – Enables dependency injection and annotation-based service exposure
@@ -138,6 +138,133 @@ mvn test -Dtest=RemoteInvokingTest
 
 ---
 
+## 在框架下开发（Develop Within This Repo）
+
+本框架采用 **契约在 rpc、consumer 只引用** 的方式：**接口与公共 DTO 只在 rpc 模块定义一份**，consumer 依赖 rpc 后直接引用，无需重复定义。在仓库内开发时只需改 rpc 一处即可同步服务端与客户端契约。
+
+### 契约与模块职责
+
+| 内容 | 所在模块 | 说明 |
+|------|----------|------|
+| 远程接口（如 `UserRemote`） | **rpc** | 在 `rpc` 中定义，consumer 通过依赖 rpc 引用 |
+| 公共 DTO（如 `User`）、返回类型 `Response` | **rpc** | 与接口同放在 rpc，供服务端与客户端共用 |
+| 接口实现（如 `UserRemoteImpl`） | **rpc** | 打 `@Remote`，随服务端启动注册 |
+| 客户端调用代码 | **consumer** | 使用 `@RemoteInvoke` 注入 rpc 中的接口并调用 |
+
+本仓库示例：接口与 DTO 见 `rpc/src/main/java/io/github/PzGallium/rpc/user/`，实现见 `UserRemoteImpl`，客户端示例见 `consumer/.../SampleClientMain.java` 与测试类 `RemoteInvokingTest`。
+
+### 开发约定（必读）
+
+- **方法名全局唯一**：所有 `@Remote` 实现类中的**方法名**在整机内不能重复，服务端按方法名路由，重名会互相覆盖。
+- **仅支持单参数**：远程方法目前只支持**一个参数**。多参数请封装成一个 DTO，放在 rpc 中供双方使用。
+- **返回值类型**：建议统一使用 rpc 提供的 `io.github.PzGallium.rpc.netty.util.Response`，便于客户端统一解析。
+
+### 新增一个 RPC 接口的完整步骤
+
+#### 1. 在 rpc 中定义契约与实现（只改 rpc）
+
+**1.1 公共 DTO**（若无则新建）  
+路径示例：`rpc/src/main/java/io/github/PzGallium/rpc/xxx/bean/XxxBean.java`
+
+```java
+package io.github.PzGallium.rpc.xxx.bean;
+
+public class XxxBean {
+    private Long id;
+    private String name;
+    // getters / setters
+}
+```
+
+**1.2 远程接口**  
+路径示例：`rpc/src/main/java/io/github/PzGallium/rpc/xxx/remote/XxxRemote.java`
+
+```java
+package io.github.PzGallium.rpc.xxx.remote;
+
+import io.github.PzGallium.rpc.netty.util.Response;
+import io.github.PzGallium.rpc.xxx.bean.XxxBean;
+
+public interface XxxRemote {
+    Response doSomething(XxxBean param);
+}
+```
+
+**1.3 实现类（打 @Remote）**  
+路径示例：`rpc/src/main/java/io/github/PzGallium/rpc/xxx/remote/XxxRemoteImpl.java`
+
+```java
+package io.github.PzGallium.rpc.xxx.remote;
+
+import io.github.PzGallium.rpc.netty.annotation.Remote;
+import io.github.PzGallium.rpc.netty.util.Response;
+import io.github.PzGallium.rpc.netty.util.ResponseUtil;
+import io.github.PzGallium.rpc.xxx.bean.XxxBean;
+
+@Remote
+public class XxxRemoteImpl implements XxxRemote {
+
+    @Override
+    public Response doSomething(XxxBean param) {
+        // 业务逻辑
+        return ResponseUtil.createSuccessResponse(param);
+    }
+}
+```
+
+确保实现类在 Spring 扫描范围内（本仓库已 `@ComponentScan("io.github.PzGallium")`，放在上述包下即可）。
+
+#### 2. 在 consumer 中调用（只引用 rpc，不再定义接口/DTO）
+
+consumer 已依赖 rpc，**无需**在 consumer 中再写接口或 DTO，直接引用 rpc 的类即可。
+
+**2.1 在需要调用的类中注入并调用**
+
+```java
+package io.github.PzGallium.consumer.xxx;
+
+import io.github.PzGallium.consumer.annotation.RemoteInvoke;
+import io.github.PzGallium.rpc.netty.util.Response;
+import io.github.PzGallium.rpc.xxx.bean.XxxBean;
+import io.github.PzGallium.rpc.xxx.remote.XxxRemote;
+
+public class YourClientService {
+
+    @RemoteInvoke
+    private XxxRemote xxxRemote;
+
+    public void callRemote() {
+        XxxBean param = new XxxBean();
+        param.setName("hello");
+        Response resp = xxxRemote.doSomething(param);
+        System.out.println(resp.getResult());
+    }
+}
+```
+
+**2.2 若写可运行入口**  
+像 `SampleClientMain` 那样，用 `@Configuration` + `@ComponentScan("io.github.PzGallium")` 启动 Spring 上下文，在某个 Bean 中注入 `XxxRemote` 并调用即可。
+
+#### 3. 运行与验证
+
+1. 启动 Zookeeper（如 `docker-compose up -d`）。
+2. 启动 rpc 服务端：`java -jar rpc/target/rpc-0.0.1-SNAPSHOT-jar-with-dependencies.jar`。
+3. 运行 consumer：执行你的 main 或 `java -jar consumer/target/consumer-0.0.1-SNAPSHOT-jar-with-dependencies.jar`，或跑单元测试。
+
+### 本仓库示例索引
+
+| 说明 | 路径 |
+|------|------|
+| 接口与 DTO | `rpc/src/main/java/io/github/PzGallium/rpc/user/remote/UserRemote.java`、`rpc/.../user/bean/User.java` |
+| 服务端实现 | `rpc/.../user/remote/UserRemoteImpl.java` |
+| 返回类型 | `rpc/.../netty/util/Response.java`、`ResponseUtil.java` |
+| 客户端示例入口 | `consumer/.../SampleClientMain.java` |
+| 客户端单元测试 | `consumer/.../client/RemoteInvokingTest.java` |
+
+按上述步骤即可在本仓库内直接开发、启动服务端与客户端，契约只维护一份（在 rpc），适合开源社区在框架下扩展与二次开发。
+
+---
+
 ## 使用 Docker 启动 Zookeeper
 
 项目根目录提供 `docker-compose.yml`，可快速启动单机 Zookeeper（端口 2181）：
@@ -156,7 +283,7 @@ docker-compose down
 
 ## 作为依赖使用
 
-若希望在自己的项目中作为 RPC 客户端/服务端使用，可将本仓库发布到本地仓库或 Maven 私服后引入：
+若希望在自己的项目中作为 RPC 客户端/服务端使用，可将本仓库发布到本地仓库或 Maven 私服后引入。**接口与公共 DTO 均在 rpc 中**，引入 rpc 即可获得契约，无需再复制一份接口：
 
 ```xml
 <dependency>
@@ -164,7 +291,7 @@ docker-compose down
     <artifactId>rpc</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 </dependency>
-<!-- 仅客户端需要 consumer 时再引入 consumer 模块或复制接口与注解 -->
+<!-- 仅客户端需再引入 consumer 模块，或自行实现 @RemoteInvoke 的代理与 TcpClient 调用 -->
 ```
 
 发布到本地仓库：
@@ -188,65 +315,52 @@ mvn clean install
 
 ---
 
-## 🧩 Quick Start（开发示例）
+## 🧩 Quick Start（代码示例）
 
-### ✅ Server-Side Development
+以下与仓库内 **契约只在 rpc、consumer 只引用** 的用法一致，可直接对照 `rpc/user` 与 `consumer/SampleClientMain`、`RemoteInvokingTest` 阅读。
 
-Create your business service:
+### 服务端（rpc 模块）
 
-```java
-@Service
-public class TestService {
-    public void test(User user){
-        System.out.println("调用了TestService.test");
-    }
-}
-```
-
-### ✅ Define the interface and implementation:
+业务类与接口、实现均放在 rpc 中，实现类打 `@Remote`：
 
 ```java
-public interface TestRemote {
-    Response testUser(User user);
+// 接口与 DTO 仅在 rpc 定义，见 rpc/.../user/remote/UserRemote.java、user/bean/User.java
+public interface UserRemote {
+    Response saveUser(User user);
+    Response saveUsers(List<User> users);
 }
 
 @Remote
-public class TestRemoteImpl implements TestRemote {
+public class UserRemoteImpl implements UserRemote {
     @Resource
-    private TestService service;
+    private UserService userService;
 
-    public Response testUser(User user){
-        service.test(user);
+    public Response saveUser(User user) {
+        userService.save(user);
         return ResponseUtil.createSuccessResponse(user);
     }
+    // ...
 }
 ```
 
-### ✅ Client-Side Development
+### 客户端（consumer 模块）
 
-Define the client interface:
+**不再重复定义**接口与 User，直接从 rpc 引用并注入调用：
 
 ```java
-public interface TestRemote {
-    Response testUser(User user);
-}
+import io.github.PzGallium.consumer.annotation.RemoteInvoke;
+import io.github.PzGallium.rpc.netty.util.Response;
+import io.github.PzGallium.rpc.user.bean.User;
+import io.github.PzGallium.rpc.user.remote.UserRemote;
+
+@RemoteInvoke
+private UserRemote userRemote;
+
+// 调用
+User user = new User();
+user.setId(1);
+user.setName("张三");
+Response resp = userRemote.saveUser(user);
 ```
 
-Invoke with annotation:
-
-```java
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = RemoteInvokingTest.class)
-@ComponentScan("io.github.PzGallium")
-public class RemoteInvokingTest {
-
-    @RemoteInvoke
-    private UserRemote userRemote;
-
-    @Test
-    public void testSaveUser() {
-        User user = new User(1000, "张三");
-        userRemote.saveUser(user);
-    }
-}
-```
+单元测试中同样只引用 rpc 的接口与 DTO，见 `consumer/.../client/RemoteInvokingTest.java`。

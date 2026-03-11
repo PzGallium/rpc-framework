@@ -14,9 +14,9 @@ import com.alibaba.fastjson.JSONObject;
 import io.github.PzGallium.consumer.annotation.RemoteInvoke;
 import io.github.PzGallium.consumer.core.TcpClient;
 import io.github.PzGallium.consumer.param.ClientRequest;
-import io.github.PzGallium.consumer.param.Response;
-import io.github.PzGallium.consumer.user.bean.User;
-import io.github.PzGallium.consumer.user.remote.UserRemote;
+import io.github.PzGallium.rpc.netty.util.Response;
+import io.github.PzGallium.rpc.user.bean.User;
+import io.github.PzGallium.rpc.user.remote.UserRemote;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
