@@ -70,10 +70,28 @@
         <version>1.2.20</version>
       </dependency>
       <dependency>
+        <groupId>javax.annotation</groupId>
+        <artifactId>javax.annotation-api</artifactId>
+        <version>1.3.2</version>
+      </dependency>
+      <dependency>
         <groupId>io.github.PzGallium</groupId>
         <artifactId>rpc</artifactId>
         <version>${project.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <!-- 发布到 GitHub Packages：在 ~/.m2/settings.xml 配置 github 的 server 与 token 后执行 mvn deploy -Pgithub-packages -->
+  <profiles>
+    <profile>
+      <id>github-packages</id>
+      <distributionManagement>
+        <repository>
+          <id>github</id>
+          <url>https://maven.pkg.github.com/${env.GITHUB_REPOSITORY_OWNER:-PzGallium}/my-rpc-framework</url>
+        </repository>
+      </distributionManagement>
+    </profile>
+  </profiles>
 </project>
