@@ -284,24 +284,48 @@ docker-compose down
 
 ## Use as a dependency
 
-To use this framework as an RPC client or server in your own project, publish to your local repo or a Maven repository and add the dependency. **Interfaces and shared DTOs are in the rpc artifact**; depend on rpc to get the contract without copying it:
+### Consume from GitHub Packages
+
+The project is published to [GitHub Packages](https://github.com/PzGallium/rpc-framework/packages). In your project’s `pom.xml`, add the repository and dependency:
 
 ```xml
-<dependency>
+<repositories>
+  <repository>
+    <id>github</id>
+    <url>https://maven.pkg.github.com/PzGallium/rpc-framework</url>
+  </repository>
+</repositories>
+
+<dependencies>
+  <dependency>
     <groupId>io.github.PzGallium</groupId>
     <artifactId>rpc</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-</dependency>
-<!-- For client usage you may also depend on consumer, or implement @RemoteInvoke-style proxy and TcpClient yourself -->
+  </dependency>
+</dependencies>
 ```
 
-Install to local repo:
+If the package is private or you hit rate limits, add a `settings.xml` server with id `github` and a [GitHub PAT](https://github.com/settings/tokens) (with `read:packages`). **Interfaces and shared DTOs are in the rpc artifact**; you get the contract without copying it. For full client support (e.g. `@RemoteInvoke`), you can depend on the `consumer` module or implement the proxy and `TcpClient` yourself.
+
+### Install from source (local repo)
+
+To use a local build instead of GitHub Packages, from this repo run:
 
 ```shell
 mvn clean install
 ```
 
-For publishing to Maven Central or GitHub Packages, see [Publishing to Maven](#publishing-to-maven).
+Then in your project add only the dependency (no extra repository):
+
+```xml
+<dependency>
+  <groupId>io.github.PzGallium</groupId>
+  <artifactId>rpc</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+</dependency>
+```
+
+For publishing this project to Maven Central or GitHub Packages, see [Publishing to Maven](#publishing-to-maven).
 
 ---
 
@@ -310,7 +334,7 @@ For publishing to Maven Central or GitHub Packages, see [Publishing to Maven](#p
 To publish `rpc` (and optionally `consumer`) to **Maven Central** or **GitHub Packages**, configure `maven-deploy-plugin` / `maven-publish` in the parent POM and set up credentials in CI (e.g. GitHub Actions).
 
 - **Maven Central**: Register at [OSSRH](https://central.sonatype.com/), create a GroupId, and configure GPG and Nexus credentials.
-- **GitHub Packages**: Add `GITHUB_TOKEN` in repository Settings → Secrets and set `distributionManagement` in the parent POM to `https://maven.pkg.github.com/YOUR_USERNAME/my-rpc-framework`.
+- **GitHub Packages**: Add `GITHUB_TOKEN` in repository Settings → Secrets and set `distributionManagement` in the parent POM to `https://maven.pkg.github.com/PzGallium/rpc-framework`.
 
 See [Maven Central upload guide](https://maven.apache.org/guides/mini/guide-central-repository-upload.html) and [GitHub Packages for Maven](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry) for details.
 
