@@ -8,6 +8,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
+import io.github.PzGallium.rpc.config.RpcConfig;
 import io.github.PzGallium.rpc.netty.constant.Constants;
 import io.github.PzGallium.rpc.netty.factory.ZookeeperFactory;
 import io.github.PzGallium.rpc.netty.handler.ServerHandler;
@@ -46,8 +47,8 @@ public class NettyInitial implements ApplicationListener<ContextRefreshedEvent>{
 					ch.pipeline().addLast(new StringEncoder());
 				}
 			});
-			int port = 9000;
-			ChannelFuture f = bootstrap.bind(9000).sync();
+			int port = RpcConfig.getServerPort();
+			ChannelFuture f = bootstrap.bind(port).sync();
 			//register to zookeeper
 			CuratorFramework client = ZookeeperFactory.create();
 			//get IP address
