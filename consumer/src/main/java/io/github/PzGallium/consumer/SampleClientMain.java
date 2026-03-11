@@ -11,8 +11,8 @@ import io.github.PzGallium.rpc.user.bean.User;
 import io.github.PzGallium.rpc.user.remote.UserRemote;
 
 /**
- * 示例客户端入口：演示如何在本项目中启动 Spring 上下文并调用 RPC 接口。
- * 运行前请确保 Zookeeper 已启动，且 rpc 服务端已运行。
+ * Sample client entry: starts Spring context and invokes an RPC interface.
+ * Ensure Zookeeper and the rpc server are running before starting the client.
  */
 @Configuration
 @ComponentScan("io.github.PzGallium")

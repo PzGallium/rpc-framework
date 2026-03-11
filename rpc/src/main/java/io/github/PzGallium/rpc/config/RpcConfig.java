@@ -1,10 +1,10 @@
 package io.github.PzGallium.rpc.config;
 
 /**
- * RPC 框架配置，支持系统属性与环境变量，便于不同环境使用。
+ * RPC framework configuration. Supports system properties and environment variables for different environments.
  * <ul>
- *   <li>Zookeeper: -Drpc.zk.address=host:port 或环境变量 RPC_ZK_ADDRESS，默认 localhost:2181</li>
- *   <li>服务端端口: -Drpc.server.port=9000 或环境变量 RPC_SERVER_PORT，默认 9000</li>
+ *   <li>Zookeeper: -Drpc.zk.address=host:port or env RPC_ZK_ADDRESS, default localhost:2181</li>
+ *   <li>Server port: -Drpc.server.port=9000 or env RPC_SERVER_PORT, default 9000</li>
  * </ul>
  */
 public final class RpcConfig {

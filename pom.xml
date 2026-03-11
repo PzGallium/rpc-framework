@@ -82,7 +82,7 @@
     </dependencies>
   </dependencyManagement>
 
-  <!-- 发布到 GitHub Packages：在 ~/.m2/settings.xml 配置 github 的 server 与 token 后执行 mvn deploy -Pgithub-packages -->
+  <!-- Publish to GitHub Packages: configure github server and token in ~/.m2/settings.xml, then run mvn deploy -Pgithub-packages -->
   <profiles>
     <profile>
       <id>github-packages</id>
